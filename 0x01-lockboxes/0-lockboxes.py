@@ -1,40 +1,45 @@
 #!/usr/bin/python3
 """
 solving lockbox question
-using Depth-First Search algorithm
 """
 
 
 def canUnlockAll(boxes):
     """
-    creating empty set to keep track of visited boxes
+    Determines if all the boxes can be opened.
+
+    Args:
+    boxes (list of lists):
+    A list of lists representing the boxes and their key contents.
+
+    Returns:
+    bool: True if all boxes can be opened, False otherwise.
     """
-    boxes_visited = set()
 
     """
-    defining a Depth-First Search function algorithm
-    It will help in exploring the boxes
+    Create a list to keep track of keys we have
+    initially with the first key (box 0)
     """
-    def dfs(box):
-        """
-        marking the current boxes we have as visited
-        by adding it to the set declared above
-        """
-        boxes_visited.add(box)
-        """
-        iterating through each key in the current boxes
-        """
-        for key in boxes[box]:
-            if key not in boxes_visited:
-                dfs(key)
+    keys = [0]
 
-    boxes_visited.add(0)
     """
-    call dfs function and start exploring from box 0
+    Iterate through the keys list and simulate the process of unlocking boxes
     """
-    dfs(0)
+    for key in keys:
+        """Get the contents of the current box"""
+        box_contents = boxes[key]
 
-    """checking if all boxes were visited"""
-    if len(boxes_visited) == len(boxes):
+        """Iterate through the keys found in the current box's contents"""
+        for new_key in box_contents:
+            """
+            Check if the new key is not already in our possession
+            and it corresponds to a valid box
+            """
+            if new_key not in keys and 0 <= new_key < len(boxes):
+                keys.append(new_key)
+
+    """Check if we have collected keys for all boxes"""
+    if len(keys) == len(boxes):
         return True
-    return False
+    else:
+        return False
