@@ -4,44 +4,50 @@ a script that reads stdin line by line and computes metrics
 """
 
 
-import sys
+def process_logs():
+    """
+    Parse and process log entries to calculate file size
+    and status code counts.
+    """
+    stdin = __import__('sys').stdin
+    line_count = 0
+    total_file_size = 0
+    status_code_counts = {}
+    status_codes = ('200', '301', '400', '401', '403', '404', '405', '500')
+
+    try:
+        for line in stdin:
+            line_count += 1
+            line_parts = line.split()
+            try:
+                total_file_size += int(line_parts[-1])
+                if line_parts[-2] in status_codes:
+                    try:
+                        status_code_counts[line_parts[-2]] += 1
+                    except KeyError:
+                        status_code_counts[line_parts[-2]] = 1
+            except (IndexError, ValueError):
+                pass
+            if line_count == 10:
+                generate_report(total_file_size, status_code_counts)
+                line_count = 0
+
+        generate_report(total_file_size, status_code_counts)
+
+    except KeyboardInterrupt as e:
+        generate_report(total_file_size, status_code_counts)
+        raise
+
+
+def generate_report(file_size, status_codes):
+    """
+    Generates a report with the total file size
+    and counts of each status code.
+    """
+    print("File size: {}".format(file_size))
+    for key, value in sorted(status_codes.items()):
+        print("{}: {}".format(key, value))
+
 
 if __name__ == '__main__':
-    total_file_size = [0]
-    http_status_counts = {200: 0, 301: 0, 400: 0, 401: 0,
-                          403: 0, 404: 0, 405: 0, 500: 0}
-
-    def display_statistics():
-        """Print statistics for file sizes and HTTP status codes."""
-        print('Total File Size: {}'.format(total_file_size[0]))
-        for status_code in sorted(http_status_counts.keys()):
-            if http_status_counts[status_code]:
-                print(f'{status_code}: {http_status_counts[status_code]}')
-
-    def parse_log_line(line):
-        """Parse a log line to extract file size and HTTP status code."""
-        try:
-            line = line[:-1]  # Remove the newline character
-            words = line.split(' ')
-            # File size is the last parameter on stdout
-            total_file_size[0] += int(words[-1])
-            # Status code comes before the file size
-            http_status_code = int(words[-2])
-            # Update the count for the status code
-            if http_status_code in http_status_counts:
-                http_status_counts[http_status_code] += 1
-        except BaseException:
-            pass
-
-    line_number = 1
-    try:
-        for log_line in sys.stdin:
-            parse_log_line(log_line)
-            """Display statistics after processing every 10 lines."""
-            if line_number % 10 == 0:
-                display_statistics()
-            line_number += 1
-    except KeyboardInterrupt:
-        display_statistics()
-        raise
-    display_statistics()
+    process_logs()
