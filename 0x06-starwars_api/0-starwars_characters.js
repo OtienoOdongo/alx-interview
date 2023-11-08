@@ -1,43 +1,45 @@
 #!/usr/bin/node
 
-const request = require('request'); // Importing the request library
+// Importing the 'request' library
+const request = require('request');
 
-// Defining the base URL for the Star Wars API
-const baseURL = 'https://swapi.dev/api/';
+// Defining the base URL for Stawars api
+const apiUrl = 'https://swapi-api.hbtn.io/api/';
 
-// Function to get character names for a given movie ID
-function getMovieCharacters (movieId) {
-  // Construct the URL for the movie
-  const movieURL = `${baseURL}films/${movieId}/`;
-
-  // Making an API request to get the movie data
-  request(movieURL, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-      const movieData = JSON.parse(body);
-      const characters = movieData.characters;
-
-      // Iterating through character URLs and printing their names
-      characters.forEach((characterURL) => {
-        request(characterURL, (charError, charResponse, charBody) => {
-          if (!charError && charResponse.statusCode === 200) {
-            const characterData = JSON.parse(charBody);
-            console.log(characterData.name);
-          } else {
-            console.log(error);
-          }
-        });
-      });
-    } else {
-      console.log(error);
-    }
-  });
+// Function to retrieve character names for a given movie ID
+function fetchCharacters (characters) {
+  // Check if there are more characters to process
+  if (characters.length > 0) {
+    // Make a GET request to fetch character data
+    request.get({ url: characters.shift() }, function (err, res, body) {
+      if (!err) {
+        // Parse the character data and print the character name
+        console.log(JSON.parse(body).name);
+        // Recursively call the function to process the next character
+        fetchCharacters(characters);
+      } else {
+        // Handle any errors in the request
+        console.log(err);
+      }
+    });
+  }
 }
 
-// Get the movie ID from command-line arguments or user input
-const movieId = process.argv[2];
+// Retrieve the movie ID from command-line arguments
+const movie = process.argv[2];
 
-if (!movieId) {
-  console.log('Error: Movie ID is missing');
-} else {
-  getMovieCharacters(movieId);
-}
+// Construct the URL for the movie data
+const url = apiUrl + 'films/' + movie + '/';
+
+// Make a GET request to fetch movie data
+request.get({ url }, function (error, response, body) {
+  if (!error && response.statusCode === 200) {
+    // Parse the movie data and get the list of characters
+    const characters = JSON.parse(body).characters;
+    // Call the function to fetch and display character names
+    fetchCharacters(characters);
+  } else {
+    // Handle any errors in the request
+    console.log(error);
+  }
+});
