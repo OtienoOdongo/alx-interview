@@ -5,10 +5,7 @@ of the island described in grid
 """
 
 
-from typing import List
-
-
-def island_perimeter(grid: List[List[int]]) -> int:
+def island_perimeter(grid):
     """
     Calculating the perimeter of the island in the grid.
 
